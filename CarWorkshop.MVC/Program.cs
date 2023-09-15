@@ -46,3 +46,5 @@ app.MapRazorPages();
 app.Run();
 
 public partial class Program { }
+public class dd { }
+
