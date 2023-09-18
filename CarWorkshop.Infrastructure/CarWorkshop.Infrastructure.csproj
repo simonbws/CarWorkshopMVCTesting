@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentAssertions" Version="6.12.0" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="7.0.2" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="7.0.2" />
@@ -14,6 +15,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.7.1" />
+    <PackageReference Include="xunit" Version="2.5.1" />
+    <PackageReference Include="xunit.core" Version="2.5.1" />
   </ItemGroup>
 
   <ItemGroup>
