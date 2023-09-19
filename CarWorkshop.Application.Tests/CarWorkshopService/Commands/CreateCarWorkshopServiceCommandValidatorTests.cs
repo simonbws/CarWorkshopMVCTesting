@@ -1,20 +1,20 @@
-﻿using Xunit;
-using CarWorkshop.Application.CarWorkshopService.Commands;
+﻿using CarWorkshop.Application.CarWorkshop.Commands.CreateCarWorkshop;
+using FluentValidation.TestHelper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentValidation.TestHelper;
+using Xunit;
 
 namespace CarWorkshop.Application.CarWorkshopService.Commands.Tests
 {
     public class CreateCarWorkshopServiceCommandValidatorTests
     {
         [Fact()]
-        public void Validate_WithValidCommand_ShouldNotHaveValidationError()
+        public void Validate_IfValidCommand_ShouldNotHaveError()
         {
-            // arrange
+             // arrange
 
             var validator = new CreateCarWorkshopServiceCommandValidator();
             var command = new CreateCarWorkshopServiceCommand()
@@ -28,13 +28,12 @@ namespace CarWorkshop.Application.CarWorkshopService.Commands.Tests
 
             var result = validator.TestValidate(command);
 
-            //assert
+            // assert
 
             result.ShouldNotHaveAnyValidationErrors();
         }
-
         [Fact()]
-        public void Validate_WithInvalidCommand_ShouldHaveValidationErrors()
+        public void Validate_IfInValidCommand_ShouldHaveError()
         {
             // arrange
 
@@ -50,7 +49,7 @@ namespace CarWorkshop.Application.CarWorkshopService.Commands.Tests
 
             var result = validator.TestValidate(command);
 
-            //assert
+            // assert
 
             result.ShouldHaveValidationErrorFor(c => c.Cost);
             result.ShouldHaveValidationErrorFor(c => c.Description);
