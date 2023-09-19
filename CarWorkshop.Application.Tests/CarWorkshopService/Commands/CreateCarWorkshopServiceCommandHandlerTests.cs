@@ -1,199 +1,182 @@
-﻿using Xunit;
-using CarWorkshop.Application.CarWorkshopService.Commands;
+﻿using CarWorkshop.Application.ApplicationUser;
+using CarWorkshop.Application.CarWorkshop;
+using CarWorkshop.Domain.Interfaces;
+using FluentAssertions;
+using MediatR;
+using Moq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using CarWorkshop.Domain.Entities;
-using Moq;
-using CarWorkshop.Application.ApplicationUser;
-using CarWorkshop.Application.CarWorkshop;
-using CarWorkshop.Domain.Interfaces;
-using FluentAssertions;
-using MediatR;
+using Xunit;
 
-namespace CarWorkshop.Application.CarWorkshopService.Commands.Tests
+namespace CarWorkshop.Application.CarWorkshopService.Commands.Tests;
+
+public class CreateCarWorkshopServiceCommandHandlerTests
 {
-    public class CreateCarWorkshopServiceCommandHandlerTests
+    //sprawdzamy czy usluga zostala dodana do istniejacego warsztatu jesli uzytkownik jest autentykowany
+    [Fact()]
+    public async Task Handle_CreatesCarWorkshopService_WhenUserIsAuth()
     {
-        [Fact()]
-        public async Task Handle_CreatesCarWorkshopService_WhenUserIsAuthorized()
+        // arrange
+
+        var carWorkshop = new Domain.Entities.CarWorkshop()
         {
-            // arrange
+            Id = 1,
+            CreatedById = "1"
+        };
 
-            var carWorkshop = new Domain.Entities.CarWorkshop()
-            {
-                Id = 1,
-                CreatedById = "1"
-            };
-
-            var command = new CreateCarWorkshopServiceCommand()
-            {
-                Cost = "100 PLN",
-                Description = "Service description",
-                CarWorkshopEncodedName = "workshop1"
-            };
-
-            var userContextMock = new Mock<IUserContext>();
-
-            userContextMock.Setup(c => c.GetCurrentUser())
-                .Returns(new CurrentUser("1", "test@test.com", new[] { "User" }));
-
-
-            var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
-            carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
-                .ReturnsAsync(carWorkshop);
-
-            var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
-
-            var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object,
-                carWorkshopServiceRepositoryMock.Object);
-
-            // act
-
-            var result = await handler.Handle(command, CancellationToken.None);
-
-            // assert
-
-            result.Should().Be(Unit.Value);
-            carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Once);
-
-        }
-
-
-        [Fact()]
-        public async Task Handle_CreatesCarWorkshopService_WhenUserIsModerator()
+        var command = new CreateCarWorkshopServiceCommand()
         {
-            // arrange
+            Cost = "100 PLN",
+            Description = "Service description",
+            CarWorkshopEncodedName = "workshop1"
+        };
 
-            var carWorkshop = new Domain.Entities.CarWorkshop()
-            {
-                Id = 1,
-                CreatedById = "1"
-            };
+        var userContextMock = new Mock<IUserContext>();
 
-            var command = new CreateCarWorkshopServiceCommand()
-            {
-                Cost = "100 PLN",
-                Description = "Service description",
-                CarWorkshopEncodedName = "workshop1"
-            };
+        userContextMock.Setup(c => c.GetCurrentUser())
+            .Returns(new CurrentUser("1", "test@test.com", new[] { "User" }));
 
-            var userContextMock = new Mock<IUserContext>();
+        var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
+        carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
+            .ReturnsAsync(carWorkshop);
 
-            userContextMock.Setup(c => c.GetCurrentUser())
-                .Returns(new CurrentUser("2", "test@test.com", new[] { "Moderator" }));
+        var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
 
+        var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object, carWorkshopServiceRepositoryMock.Object);
 
-            var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
-            carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
-                .ReturnsAsync(carWorkshop);
+        // act
 
-            var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-            var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object,
-                carWorkshopServiceRepositoryMock.Object);
+        // assert
 
-            // act
+        result.Should().Be(Unit.Value);
+        carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Once);
+    }
+    [Fact()]
+    //sprawdzamy czy usluga zostala dodana do istniejacego warsztatu jesli uzytkownik jest moderatorem
+    public async Task Handle_CreatesCarWorkshopService_WhenUserIsModerator()
+    {
+        // arrange
 
-            var result = await handler.Handle(command, CancellationToken.None);
-
-            // assert
-
-            result.Should().Be(Unit.Value);
-            carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Once);
-
-        }
-
-
-        [Fact()]
-        public async Task Handle_DoesntCreateCarWorkshopService_WhenUserIsNotAuthorized()
+        var carWorkshop = new Domain.Entities.CarWorkshop()
         {
-            // arrange
+            Id = 1,
+            CreatedById = "1"
+        };
 
-            var carWorkshop = new Domain.Entities.CarWorkshop()
-            {
-                Id = 1,
-                CreatedById = "1"
-            };
-
-            var command = new CreateCarWorkshopServiceCommand()
-            {
-                Cost = "100 PLN",
-                Description = "Service description",
-                CarWorkshopEncodedName = "workshop1"
-            };
-
-            var userContextMock = new Mock<IUserContext>();
-
-            userContextMock.Setup(c => c.GetCurrentUser())
-                .Returns(new CurrentUser("2", "test@test.com", new[] { "User" }));
-
-
-            var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
-            carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
-                .ReturnsAsync(carWorkshop);
-
-            var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
-
-            var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object,
-                carWorkshopServiceRepositoryMock.Object);
-
-            // act
-
-            var result = await handler.Handle(command, CancellationToken.None);
-
-            // assert
-
-            result.Should().Be(Unit.Value);
-            carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Never);
-
-        }
-
-
-        [Fact()]
-        public async Task Handle_DoesntCreateCarWorkshopService_WhenUserIsNotAuthenticated()
+        var command = new CreateCarWorkshopServiceCommand()
         {
-            // arrange
+            Cost = "100 PLN",
+            Description = "Service description",
+            CarWorkshopEncodedName = "workshop1"
+        };
 
-            var carWorkshop = new Domain.Entities.CarWorkshop()
-            {
-                Id = 1,
-                CreatedById = "1"
-            };
+        var userContextMock = new Mock<IUserContext>();
 
-            var command = new CreateCarWorkshopServiceCommand()
-            {
-                Cost = "100 PLN",
-                Description = "Service description",
-                CarWorkshopEncodedName = "workshop1"
-            };
+        userContextMock.Setup(c => c.GetCurrentUser())
+            .Returns(new CurrentUser("2", "test@test.com", new[] { "Moderator" }));
 
-            var userContextMock = new Mock<IUserContext>();
+        var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
+        carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
+            .ReturnsAsync(carWorkshop);
 
-            userContextMock.Setup(c => c.GetCurrentUser())
-                .Returns((CurrentUser?)null);
+        var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
 
+        var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object, carWorkshopServiceRepositoryMock.Object);
 
-            var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
-            carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
-                .ReturnsAsync(carWorkshop);
+        // act
 
-            var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
+        var result = await handler.Handle(command, CancellationToken.None);
 
-            var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object,
-                carWorkshopServiceRepositoryMock.Object);
+        // assert
 
-            // act
+        result.Should().Be(Unit.Value);
+        carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Once);
+    }
+    [Fact()]
+    //sprawdzamy czy usluga zostala dodana do istniejacego warsztatu jesli uzytkownik jest moderatorem
+    public async Task Handle_CreatesCarWorkshopService_WhenUserIsNotAuthorized()
+    {
+        // arrange
 
-            var result = await handler.Handle(command, CancellationToken.None);
+        var carWorkshop = new Domain.Entities.CarWorkshop()
+        {
+            Id = 1,
+            CreatedById = "1"
+        };
 
-            // assert
+        var command = new CreateCarWorkshopServiceCommand()
+        {
+            Cost = "100 PLN",
+            Description = "Service description",
+            CarWorkshopEncodedName = "workshop1"
+        };
 
-            result.Should().Be(Unit.Value);
-            carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Never);
+        var userContextMock = new Mock<IUserContext>();
 
-        }
+        userContextMock.Setup(c => c.GetCurrentUser())
+            .Returns(new CurrentUser("2", "test@test.com", new[] { "User" }));
+
+        var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
+        carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
+            .ReturnsAsync(carWorkshop);
+
+        var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
+
+        var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object, carWorkshopServiceRepositoryMock.Object);
+
+        // act
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // assert
+
+        result.Should().Be(Unit.Value);
+        carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Never);
+    }
+    [Fact()]
+    //sprawdzamy czy usluga zostala dodana do istniejacego warsztatu jesli uzytkownik jest moderatorem
+    public async Task Handle_CreatesCarWorkshopService_WhenUserIsNotAuthenticated()
+    {
+        // arrange
+
+        var carWorkshop = new Domain.Entities.CarWorkshop()
+        {
+            Id = 1,
+            CreatedById = "1"
+        };
+
+        var command = new CreateCarWorkshopServiceCommand()
+        {
+            Cost = "100 PLN",
+            Description = "Service description",
+            CarWorkshopEncodedName = "workshop1"
+        };
+
+        var userContextMock = new Mock<IUserContext>();
+
+        userContextMock.Setup(c => c.GetCurrentUser())
+            .Returns((CurrentUser?)null);
+
+        var carWorkshopRepositoryMock = new Mock<ICarWorkshopRepository>();
+        carWorkshopRepositoryMock.Setup(c => c.GetByEncodedName(command.CarWorkshopEncodedName))
+            .ReturnsAsync(carWorkshop);
+
+        var carWorkshopServiceRepositoryMock = new Mock<ICarWorkshopServiceRepository>();
+
+        var handler = new CreateCarWorkshopServiceCommandHandler(userContextMock.Object, carWorkshopRepositoryMock.Object, carWorkshopServiceRepositoryMock.Object);
+
+        // act
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        // assert
+
+        result.Should().Be(Unit.Value);
+        carWorkshopServiceRepositoryMock.Verify(m => m.Create(It.IsAny<Domain.Entities.CarWorkshopService>()), Times.Never);
     }
 }
