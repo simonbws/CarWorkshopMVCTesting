@@ -1,13 +1,13 @@
-﻿using Xunit;
-using CarWorkshop.Application.CarWorkshop;
+﻿using CarWorkshop.Application.CarWorkshop;
+using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using FluentAssertions;
+using Xunit;
 
-namespace CarWorkshop.Application.CarWorkshop.Tests
+namespace CarWorkshop.Application.Tests.ApplicationUser
 {
     public class CurrentUserTests
     {
@@ -20,15 +20,14 @@ namespace CarWorkshop.Application.CarWorkshop.Tests
 
             // act
 
-            var isInRole  = currentUser.IsInRole("Admin");
+            var isInRole = currentUser.IsInRole("admin");
 
             // assert
 
             isInRole.Should().BeTrue();
         }
-
         [Fact()]
-        public void IsInRole_WithNonMatchingRole_ShouldReturnFalse()
+        public void IsInRole_WithNonMatchingRole_ShouldReturnNotTrue()
         {
             // arrange
 
@@ -44,7 +43,7 @@ namespace CarWorkshop.Application.CarWorkshop.Tests
         }
 
         [Fact()]
-        public void IsInRole_WithNonMatchingCaseRole_ShouldReturnFalse()
+        public void IsInRole_WithLowerCaseRole_ShouldReturnFalse()
         {
             // arrange
 
